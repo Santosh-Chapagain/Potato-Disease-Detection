@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Potato Leaf Disease Detector</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=DM+Serif+Display:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-1: #f3f7f0;
+        --bg-2: #c8e7d2;
+        --bg-3: #8dcfae;
+        --ink: #1d2a24;
+        --ink-soft: #41564b;
+        --card: rgba(255, 255, 255, 0.78);
+        --stroke: rgba(16, 68, 49, 0.18);
+        --accent: #0f8a5f;
+        --accent-2: #e28f27;
+        --danger: #c7433f;
+        --shadow: 0 18px 40px rgba(18, 70, 52, 0.18);
+        --radius: 22px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Space Grotesk", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(
+            900px 500px at -5% -5%,
+            rgba(255, 255, 255, 0.95),
+            transparent 65%
+          ),
+          radial-gradient(
+            700px 420px at 110% 20%,
+            rgba(228, 251, 238, 0.95),
+            transparent 70%
+          ),
+          linear-gradient(135deg, var(--bg-1), var(--bg-2) 45%, var(--bg-3));
+        overflow-x: hidden;
+      }
+
+      .ambient {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .blob {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(14px);
+        opacity: 0.45;
+        animation: drift 16s ease-in-out infinite;
+      }
+
+      .blob.one {
+        width: 320px;
+        height: 320px;
+        background: #8cd8a7;
+        top: -80px;
+        right: -70px;
+      }
+
+      .blob.two {
+        width: 260px;
+        height: 260px;
+        background: #ffd28f;
+        bottom: -40px;
+        left: -80px;
+        animation-delay: -5s;
+      }
+
+      .blob.three {
+        width: 180px;
+        height: 180px;
+        background: #92b9ff;
+        bottom: 24%;
+        right: 8%;
+        animation-delay: -9s;
+      }
+
+      @keyframes drift {
+        0%,
+        100% {
+          transform: translate(0, 0) scale(1);
+        }
+        50% {
+          transform: translate(16px, -18px) scale(1.06);
+        }
+      }
+
+      .page {
+        position: relative;
+        z-index: 2;
+        max-width: 1140px;
+        margin: 0 auto;
+        padding: 36px 22px 50px;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 24px;
+        align-items: center;
+        margin-bottom: 20px;
+        animation: fadeSlide 700ms ease-out both;
+      }
+
+      @keyframes fadeSlide {
+        from {
+          opacity: 0;
+          transform: translateY(24px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .headline {
+        font-family: "DM Serif Display", serif;
+        font-size: clamp(2rem, 4vw, 3.2rem);
+        line-height: 1.05;
+        margin: 0 0 10px;
+        letter-spacing: 0.2px;
+      }
+
+      .subline {
+        margin: 0;
+        max-width: 52ch;
+        color: var(--ink-soft);
+        font-size: clamp(0.95rem, 1.2vw, 1.06rem);
+        line-height: 1.7;
+      }
+
+      .hero-card {
+        border: 1px solid var(--stroke);
+        background: var(--card);
+        backdrop-filter: blur(10px);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 20px;
+        transform: rotate(-1deg);
+      }
+
+      .hero-card h3 {
+        margin: 0 0 8px;
+        font-size: 1.02rem;
+        font-weight: 700;
+      }
+
+      .hero-card p {
+        margin: 0;
+        color: var(--ink-soft);
+        line-height: 1.6;
+        font-size: 0.92rem;
+      }
+
+      .shell {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        animation: fadeSlide 850ms ease-out both;
+        animation-delay: 60ms;
+      }
+
+      .panel {
+        border: 1px solid var(--stroke);
+        background: var(--card);
+        backdrop-filter: blur(8px);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 20px;
+      }
+
+      .panel h2 {
+        margin: 4px 0 14px;
+        font-size: 1.12rem;
+        letter-spacing: 0.25px;
+      }
+
+      .dropzone {
+        position: relative;
+        border: 2px dashed #78b899;
+        border-radius: 16px;
+        min-height: 280px;
+        display: grid;
+        place-items: center;
+        text-align: center;
+        padding: 16px;
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.65),
+          rgba(224, 245, 234, 0.85)
+        );
+        transition:
+          border-color 0.25s ease,
+          transform 0.25s ease,
+          background 0.25s ease;
+        cursor: pointer;
+        overflow: hidden;
+      }
+
+      .dropzone:hover,
+      .dropzone.drag-over {
+        border-color: var(--accent);
+        transform: translateY(-1px);
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.9),
+          rgba(217, 243, 230, 1)
+        );
+      }
+
+      .drop-content {
+        position: relative;
+        z-index: 2;
+      }
+
+      .dropzone svg {
+        width: 54px;
+        height: 54px;
+        color: #3f7f62;
+        margin-bottom: 10px;
+      }
+
+      .dropzone p {
+        margin: 0;
+        color: var(--ink-soft);
+        line-height: 1.55;
+      }
+
+      #fileInput {
+        display: none;
+      }
+
+      .preview {
+        width: 100%;
+        max-height: 250px;
+        object-fit: contain;
+        border-radius: 14px;
+        border: 1px solid rgba(15, 138, 95, 0.28);
+        box-shadow: 0 10px 25px rgba(24, 86, 63, 0.12);
+        display: none;
+        margin-top: 14px;
+        background: white;
+      }
+
+      .btn {
+        border: none;
+        border-radius: 999px;
+        padding: 11px 20px;
+        font: inherit;
+        font-weight: 700;
+        letter-spacing: 0.15px;
+        cursor: pointer;
+        transition:
+          transform 0.2s ease,
+          opacity 0.2s ease;
+      }
+
+      .btn:disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
+      }
+
+      .btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #0f8a5f, #0a714d);
+        color: #fff;
+        margin-top: 14px;
+      }
+
+      .status {
+        min-height: 22px;
+        margin-top: 12px;
+        font-size: 0.93rem;
+        color: var(--ink-soft);
+      }
+
+      .result-card {
+        border-radius: 16px;
+        border: 1px solid rgba(18, 70, 52, 0.14);
+        background: linear-gradient(
+          160deg,
+          rgba(255, 255, 255, 0.9),
+          rgba(225, 245, 235, 0.75)
+        );
+        padding: 18px;
+        min-height: 242px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 12px;
+      }
+
+      .result-title {
+        margin: 0;
+        font-family: "DM Serif Display", serif;
+        font-size: 1.4rem;
+      }
+
+      .tag {
+        display: inline-flex;
+        width: fit-content;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.1px;
+        background: rgba(15, 138, 95, 0.16);
+        color: #106c4b;
+      }
+
+      .metric {
+        display: grid;
+        gap: 6px;
+      }
+
+      .metric-label {
+        font-size: 0.82rem;
+        color: var(--ink-soft);
+      }
+
+      .meter {
+        width: 100%;
+        height: 11px;
+        border-radius: 999px;
+        background: rgba(14, 78, 54, 0.16);
+        overflow: hidden;
+      }
+
+      .meter > span {
+        display: block;
+        height: 100%;
+        width: 0;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #f3a531, #0f8a5f);
+        transition: width 450ms ease;
+      }
+
+      .confidence-text {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+      }
+
+      .result-hint {
+        margin: 0;
+        color: var(--ink-soft);
+        line-height: 1.6;
+        font-size: 0.92rem;
+      }
+
+      .error {
+        color: var(--danger);
+        font-weight: 600;
+      }
+
+      .footer-note {
+        margin-top: 18px;
+        font-size: 0.83rem;
+        color: #4c6257;
+      }
+
+      @media (max-width: 900px) {
+        .hero,
+        .shell {
+          grid-template-columns: 1fr;
+        }
+
+        .hero-card {
+          transform: rotate(0deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="ambient" aria-hidden="true">
+      <div class="blob one"></div>
+      <div class="blob two"></div>
+      <div class="blob three"></div>
+    </div>
+
+    <main class="page">
+      <section class="hero">
+        <div>
+          <h1 class="headline">Potato Leaf Disease Detector</h1>
+          <p class="subline">
+            Upload a leaf image and get an instant AI diagnosis trained model. Built for quick screening and field-level
+            monitoring.
+          </p>
+        </div>
+</section>
+
+      <section class="shell">
+        <article class="panel">
+          <h2>Upload Leaf Image</h2>
+          <label class="dropzone" id="dropzone" for="fileInput">
+            <input id="fileInput" type="file" accept="image/*" />
+            <div class="drop-content" id="dropContent">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              <p>
+                <strong>Drag and drop</strong> an image here<br />or click to
+                choose a file
+              </p>
+            </div>
+          </label>
+          <img id="preview" class="preview" alt="Leaf preview" />
+          <button id="predictBtn" class="btn btn-primary" disabled>
+            Analyze Image
+          </button>
+          <p id="status" class="status" aria-live="polite"></p>
+        </article>
+
+        <article class="panel">
+          <h2>Prediction Result</h2>
+          <div class="result-card" id="resultCard">
+            <h3 class="result-title" id="resultClass">No prediction yet</h3>
+            <span class="tag" id="resultTag">Awaiting upload</span>
+            <div class="metric">
+              <span class="metric-label">Confidence</span>
+              <div class="meter"><span id="meterBar"></span></div>
+              <p class="confidence-text" id="confidenceText">0.00%</p>
+            </div>
+            <p class="result-hint" id="resultHint">
+              Upload a potato leaf image to see model output.
+            </p>
+          </div>
+          <p class="footer-note">
+            Tip: use a well-lit, focused image for best accuracy.
+          </p>
+        </article>
+      </section>
+    </main>
+
+    <script>
+      const fileInput = document.getElementById("fileInput");
+      const dropzone = document.getElementById("dropzone");
+      const preview = document.getElementById("preview");
+      const predictBtn = document.getElementById("predictBtn");
+      const statusText = document.getElementById("status");
+
+      const resultClass = document.getElementById("resultClass");
+      const resultTag = document.getElementById("resultTag");
+      const meterBar = document.getElementById("meterBar");
+      const confidenceText = document.getElementById("confidenceText");
+      const resultHint = document.getElementById("resultHint");
+
+      let selectedFile = null;
+
+      function setStatus(message, isError = false) {
+        statusText.textContent = message;
+        statusText.className = isError ? "status error" : "status";
+      }
+
+      function resetResult() {
+        resultClass.textContent = "No prediction yet";
+        resultTag.textContent = "Awaiting upload";
+        meterBar.style.width = "0%";
+        confidenceText.textContent = "0.00%";
+        resultHint.textContent =
+          "Upload a potato leaf image to see model output.";
+      }
+
+      function formatClassName(name) {
+        return (name || "Unknown").replace(/_/g, " ");
+      }
+
+      function updatePreview(file) {
+        const url = URL.createObjectURL(file);
+        preview.src = url;
+        preview.style.display = "block";
+        setStatus("Image selected. Click Analyze Image to predict.");
+      }
+
+      function handleFile(file) {
+        if (!file || !file.type.startsWith("image/")) {
+          setStatus("Please upload a valid image file.", true);
+          return;
+        }
+
+        selectedFile = file;
+        predictBtn.disabled = false;
+        updatePreview(file);
+        resetResult();
+      }
+
+      fileInput.addEventListener("change", (event) => {
+        handleFile(event.target.files[0]);
+      });
+
+      ["dragenter", "dragover"].forEach((eventName) => {
+        dropzone.addEventListener(eventName, (event) => {
+          event.preventDefault();
+          dropzone.classList.add("drag-over");
+        });
+      });
+
+      ["dragleave", "drop"].forEach((eventName) => {
+        dropzone.addEventListener(eventName, (event) => {
+          event.preventDefault();
+          dropzone.classList.remove("drag-over");
+        });
+      });
+
+      dropzone.addEventListener("drop", (event) => {
+        const file = event.dataTransfer.files[0];
+        handleFile(file);
+      });
+
+      predictBtn.addEventListener("click", async () => {
+        if (!selectedFile) {
+          setStatus("Please upload an image first.", true);
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+
+        predictBtn.disabled = true;
+        setStatus("Analyzing image...");
+
+        try {
+          const response = await fetch("/predict", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!response.ok) {
+            throw new Error("Backend returned an error.");
+          }
+
+          const data = await response.json();
+          const diseaseClass = formatClassName(data.class);
+          const confidence = Number(data.confidence || 0);
+          const percentage = Math.max(0, Math.min(100, confidence * 100));
+
+          resultClass.textContent = diseaseClass;
+          resultTag.textContent = "Model Prediction";
+          meterBar.style.width = percentage.toFixed(2) + "%";
+          confidenceText.textContent = percentage.toFixed(2) + "%";
+          resultHint.textContent =
+            "Prediction completed successfully from your FastAPI backend.";
+
+          setStatus("Prediction complete.");
+        } catch (error) {
+          setStatus(
+            "Could not fetch prediction. Ensure backend is running on the same server.",
+            true,
+          );
+          resultClass.textContent = "Prediction failed";
+          resultTag.textContent = "Error";
+          meterBar.style.width = "0%";
+          confidenceText.textContent = "0.00%";
+          resultHint.textContent = "Check your server logs and try again.";
+        } finally {
+          predictBtn.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>
