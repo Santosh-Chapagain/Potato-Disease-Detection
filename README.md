@@ -70,12 +70,6 @@ Response format:
 }
 ```
 
-## Notes
-
-- Do not commit your `venv/` folder to Git.
-- If frontend changes do not appear, hard refresh with `Ctrl+F5`.
-- Ensure you are opening `http://127.0.0.1:8000` (same host/port as Uvicorn).
-
 ## License
 
 This project is for educational and demonstration purposes.
